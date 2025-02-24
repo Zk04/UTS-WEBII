@@ -33,7 +33,8 @@ exports.simpan = async (req, res) => {
       status,
     });
     await newTask.save();// Simpan tugas ke database
-    io.emit("taskAdded", newTask); // Emit WebSocket event
+     // Kirim event WebSocket ke semua client
+     io.emit("taskAdded", { message: `Tugas baru: ${title} ditambahkan!`, task: newTask });
 
     res.redirect("/tasks"); // Redirect setelah sukses menambahkan tugas
   } catch (error) {
@@ -71,7 +72,8 @@ exports.update = async (req, res) => {
     }, { new: true }); // `new: true` agar mendapatkan data terbaru setelah update
 
 
-    io.emit("taskUpdated", updatedTask); // Emit WebSocket event
+   // Kirim event WebSocket ke semua client
+   io.emit("taskUpdated", { message: `Tugas: ${title} diperbarui!`, task: updatedTask });
 
     res.redirect("/tasks"); // Redirect setelah sukses update tugas
   } catch (error) {

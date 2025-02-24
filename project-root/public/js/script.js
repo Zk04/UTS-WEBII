@@ -3,64 +3,40 @@ document.addEventListener("DOMContentLoaded", () => {
   //Event listener untuk menghapus tugas
   document.addEventListener("click", async (event) => {
     if (event.target.classList.contains("delete-task")) {
-      const taskId = event.target.getAttribute("data-id"); // Ambil ID tugas yang ingin dihapus
+      const taskId = event.target.getAttribute("data-id");
       if (confirm("Apakah Anda yakin ingin menghapus tugas ini?")) {
         const response = await fetch(`/tasks/hapus/${taskId}`, {
-          method: "DELETE", // Kirim request DELETE ke server
+          method: "DELETE",
         });
         if (response.ok) {
           const result = await response.json();
-          alert(result.message); // Tampilkan pesan sukses
-          event.target.closest("tr").remove(); // Hapus baris dari tabel
+          alert(result.message);
+          event.target.closest("tr").remove();
         } else {
           const error = await response.text();
-          alert("Gagal menghapus tugas: " + error); // Tampilkan pesan error
+          alert("Gagal menghapus tugas: " + error);
         }
       }
     }
   });
 
-  function showToast(message, bgColor = "#28a745") {
-    const toast = $(`<div class='toast-message'>${message}</div>`);
-    toast.css({
-        "position": "fixed",
-        "bottom": "-50px", // Awalnya tersembunyi
-        "right": "20px",
-        "background": bgColor,
-        "color": "white",
-        "padding": "10px 20px",
-        "border-radius": "5px",
-        "box-shadow": "0px 0px 10px rgba(0, 0, 0, 0.2)",
-        "z-index": "1000",
-        "font-size": "16px",
-        "opacity": "0.9",
-        "transition": "bottom 0.5s ease-in-out"
-    });
-
-    $("body").append(toast);
-    setTimeout(() => { toast.css("bottom", "20px"); }, 50); // Animasi muncul
-    setTimeout(() => { toast.fadeOut(() => toast.remove()); }, 3000);
-}
-
-  // Integrasi dengan WebSocket untuk notifikasi real-time
   const socket = io();
-  window.socket.on("taskAdded", (data) => {
-    showToast(`Tugas baru ditambahkan: ${data.task.title}`, "#28a745");
-    updateTaskList();
-});
+  socket.on("newTask", (task) => {
+    alert(`Tugas baru ditambahkan: ${task.title}`);
+  });
 
-window.socket.on("taskUpdated", (data) => {
-    showToast(`Tugas diperbarui: ${data.task.title}`, "#ffc107");
-    updateTaskList();
-});
+  socket.on("taskAdded", (task) => {
+    alert(`Tugas baru ditambahkan: ${task.title}`);
+  });
 
-window.socket.on("taskDeleted", (data) => {
-    showToast(`Tugas dihapus: ${data.task.title}`, "#dc3545");
-    updateTaskList();
-});
+  socket.on("taskUpdated", (task) => {
+    alert(`Tugas diperbarui: ${task.title}`);
+  });
 
+  socket.on("taskDeleted", (task) => {
+    alert(`Tugas dihapus: ${task.title}`);
+  });
 });
-
 // AJAX digunakan untuk manipulasi data tanpa reload halaman
 $(document).ready(function () {
     // Tambah tugas dengan AJAX
@@ -80,7 +56,7 @@ $(document).ready(function () {
             data: JSON.stringify(taskData),
             success: function (response) {
                 alert("Tugas berhasil ditambahkan!");
-                window.location.href = "/"; // Refresh halaman utama
+                window.location.href = "/tasks"; // Refresh halaman utama
             },
             error: function (xhr) {
                 alert("Gagal menambahkan tugas: " + xhr.responseText);
@@ -151,21 +127,21 @@ $(document).ready(function () {
       });
   });
 
-    $("#confirmDeleteTask").click(function () {
-        let taskId = $("#deleteTaskId").val();
+    // $("#confirmDeleteTask").click(function () {
+    //     let taskId = $("#deleteTaskId").val();
 
-        $.ajax({
-            url: `/tasks/hapus/${taskId}`,
-            type: "DELETE",
-            success: function (response) {
-                if (response.success) {
-                    $(`#task-${taskId}`).remove();
-                    $("#deleteTaskModal").modal("hide");
-                }
-            },
-            error: function () {
-                alert("Error deleting task");
-            }
-        });
-    });
+    //     $.ajax({
+    //         url: `/tasks/hapus/${taskId}`,
+    //         type: "DELETE",
+    //         success: function (response) {
+    //             if (response.success) {
+    //                 $(`#task-${taskId}`).remove();
+    //                 $("#deleteTaskModal").modal("hide");
+    //             }
+    //         },
+    //         error: function () {
+    //             alert("Error deleting task");
+    //         }
+    //     });
+    // });
 });

@@ -15,7 +15,7 @@ const authMiddleware = async (req, res, next) => {
     // Verifikasi token dan dapatkan data pengguna dari token
     const decoded = verifyToken(token);
     // Cari user di database berdasarkan ID dari token
-    const user = await User.findById(decoded.id).select("username email"); // Ambil username & email saja
+    const user = await User.findById(decoded.id).select("username"); // Ambil username saja
     // Jika user tidak ditemukan, kembalikan respon 404 (Not Found)
     if (!user) {
       return res.status(404).json({ message: "User not found" });
