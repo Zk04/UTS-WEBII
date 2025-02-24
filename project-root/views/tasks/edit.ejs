@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Tugas</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/style1.css">
+    <!-- <style>
+        .btn {
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+        .btn:hover {
+            opacity: 0.8;
+        }
+    </style> -->
+</head>
+<body>
+
+<div class="container mt-5">
+    <h2 class="text-center">Edit Tugas</h2>
+
+    <form action="/tasks/update/<%= task._id %>" method="POST">
+        <div class="mb-3">
+            <label class="form-label">Judul:</label>
+            <input type="text" class="form-control" name="title" value="<%= task.title %>" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Deskripsi:</label>
+            <textarea class="form-control" name="description" required><%= task.description %></textarea>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Kategori:</label>
+            <select name="category" class="form-select" required>
+                <option value="Kuliah" <%= task.category === 'Kuliah' ? 'selected' : '' %>>Kuliah</option>
+                <option value="Organisasi" <%= task.category === 'Organisasi' ? 'selected' : '' %>>Organisasi</option>
+                <option value="Pribadi" <%= task.category === 'Pribadi' ? 'selected' : '' %>>Pribadi</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Deadline:</label>
+            <input type="date" class="form-control" name="deadline" value="<%= task.deadline ? new Date(task.deadline).toISOString().split('T')[0] : '' %>" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Status:</label>
+            <select name="status" class="form-select" required>
+                <option value="Belum Selesai" <%= task.status === 'Belum Selesai' ? 'selected' : '' %>>Belum Selesai</option>
+                <option value="Selesai" <%= task.status === 'Selesai' ? 'selected' : '' %>>Selesai</option>
+            </select>
+        </div>
+        <div class="d-flex justify-content-between">
+            <a href="/tasks" class="btn btn-secondary">Kembali</a>
+            <button type="submit" class="btn btn-primary">Update Tugas</button>
+        </div>
+    </form>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="/js/script.js"></script>
+
+</body>
+</html>

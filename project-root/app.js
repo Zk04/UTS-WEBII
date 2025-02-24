@@ -1,43 +1,48 @@
 const express = require("express");
-require("dotenv").config(); // Add this line to load environment variables
-const bodyParser = require("body-parser");
-const methodOverride = require("method-override");
-const cookieParser = require("cookie-parser"); // Add this line
-const taskRoutes = require("./routes/taskRoutes");
-const auth = require("./middleware/authMiddleware");
-const authRoutes = require("./routes/authRoutes");
-const authController = require("./controllers/authController"); // Add this line
+require("dotenv").config(); // Memuat variabel lingkungan dari .env
+const methodOverride = require("method-override"); // Mendukung metode HTTP PUT/DELETE pada form
+const cookieParser = require("cookie-parser"); // Middleware untuk menangani cookie
+const taskRoutes = require("./routes/taskRoutes"); // Route tugas
+const authRoutes = require("./routes/authRoutes"); // Route autentikasi
+const auth = require("./middleware/authMiddleware"); // Middleware autentikasi
+const authController = require("./controllers/authController"); // Controller autentikasi
 require("./config/database"); // Koneksi ke database
 
 const app = express();
-app.use(express.static("public"));
 
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.json());
-app.use(methodOverride("_method"));
-app.use(cookieParser()); // Add this line
-app.set("view engine", "ejs");
+app.use(express.static("public")); // Menyediakan folder untuk file statis
+app.use(express.urlencoded({ extended: true })); // Menangani data dari form
+app.use(express.json()); // Middleware untuk menangani request JSON
+app.use(methodOverride("_method")); // Mendukung metode PUT/DELETE melalui query string
+app.use(cookieParser()); // Middleware untuk cookie
 
+app.set("view engine", "ejs"); // Menggunakan EJS sebagai template engine
+
+// Middleware global untuk menyertakan user dalam response
 app.use((req, res, next) => {
   res.locals.user = req.user;
   next();
 });
 
-app.use("/tasks", auth, taskRoutes); // Ensure this line is correct
+// Menggunakan route untuk tugas dan autentikasi
+app.use("/tasks", auth, taskRoutes);
 app.use("/auth", authRoutes);
 
+// Route utama mengarahkan ke halaman login
 app.get("/", (req, res) => {
   res.redirect("/login");
 });
 
+// Route halaman login dan registrasi
 app.get("/login", (req, res) => {
   res.render("auth/login", { message: null, token: null });
 });
 
-app.post("/login", authController.login); // Add this line to handle POST requests to /login
+app.post("/login", authController.login);
 
 app.get("/register", (req, res) => {
   res.render("auth/register", { message: null, token: null });
 });
 
+// Menjalankan server
 app.listen(3000, () => console.log("Server berjalan di http://localhost:3000"));

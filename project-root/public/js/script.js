@@ -20,23 +20,45 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-   // 🔥 Integrasi dengan WebSocket untuk notifikasi real-time
+  function showToast(message, bgColor = "#28a745") {
+    const toast = $(`<div class='toast-message'>${message}</div>`);
+    toast.css({
+        "position": "fixed",
+        "bottom": "-50px", // Awalnya tersembunyi
+        "right": "20px",
+        "background": bgColor,
+        "color": "white",
+        "padding": "10px 20px",
+        "border-radius": "5px",
+        "box-shadow": "0px 0px 10px rgba(0, 0, 0, 0.2)",
+        "z-index": "1000",
+        "font-size": "16px",
+        "opacity": "0.9",
+        "transition": "bottom 0.5s ease-in-out"
+    });
+
+    $("body").append(toast);
+    setTimeout(() => { toast.css("bottom", "20px"); }, 50); // Animasi muncul
+    setTimeout(() => { toast.fadeOut(() => toast.remove()); }, 3000);
+}
+
+  // Integrasi dengan WebSocket untuk notifikasi real-time
   const socket = io();
-  socket.on("newTask", (task) => {
-    alert(`Tugas baru ditambahkan: ${task.title}`); // Notifikasi saat tugas baru ditambahkan
-  });
+  window.socket.on("taskAdded", (data) => {
+    showToast(`Tugas baru ditambahkan: ${data.task.title}`, "#28a745");
+    updateTaskList();
+});
 
-  socket.on("taskAdded", (task) => {
-    alert(`Tugas baru ditambahkan: ${task.title}`);
-  });
+window.socket.on("taskUpdated", (data) => {
+    showToast(`Tugas diperbarui: ${data.task.title}`, "#ffc107");
+    updateTaskList();
+});
 
-  socket.on("taskUpdated", (task) => {
-    alert(`Tugas diperbarui: ${task.title}`);
-  });
+window.socket.on("taskDeleted", (data) => {
+    showToast(`Tugas dihapus: ${data.task.title}`, "#dc3545");
+    updateTaskList();
+});
 
-  socket.on("taskDeleted", (task) => {
-    alert(`Tugas dihapus: ${task.title}`);
-  });
 });
 
 // AJAX digunakan untuk manipulasi data tanpa reload halaman
@@ -64,6 +86,33 @@ $(document).ready(function () {
                 alert("Gagal menambahkan tugas: " + xhr.responseText);
             }
         });
+    });
+
+    // Edit tugas dengan AJAX
+    $('#editTaskForm').on('submit', function (e) {
+      e.preventDefault();
+      let taskId = $(this).data("id");  // Ambil ID tugas yang akan diedit
+
+      let taskData = {
+          title: $('#editTitle').val(),
+          category: $('#editCategory').val(),
+          deadline: $('#editDeadline').val(),
+          status: $('#editStatus').val()
+      };
+
+      $.ajax({
+          url: "/tasks/" + taskId,
+          type: "PUT",
+          contentType: "application/json",
+          data: JSON.stringify(taskData),
+          success: function (response) {
+              alert("Tugas berhasil diperbarui!");
+              window.location.href = "/";
+          },
+          error: function (xhr) {
+              alert("Gagal memperbarui tugas: " + xhr.responseText);
+          }
+      });
     });
 
     //Event listener untuk perubahan pada dropdown kategori
@@ -102,49 +151,20 @@ $(document).ready(function () {
       });
   });
 
-    // Hapus tugas dengan AJAX
-    // $(document).on('click', '.delete-task', function () {
-    //     let row = $(this).closest("tr");
-    //     let taskId = row.data("id");
-
-    //     if (confirm("Apakah Anda yakin ingin menghapus tugas ini?")) {
-    //         $.ajax({
-    //             url: "/tasks/" + taskId,
-    //             type: "DELETE",
-    //             success: function (response) {
-    //                 alert("Tugas berhasil dihapus!");
-    //                 row.remove();
-    //             },
-    //             error: function (xhr) {
-    //                 alert("Gagal menghapus tugas: " + xhr.responseText);
-    //             }
-    //         });
-    //     }
-    // });  tidak dipakai karna terdapat error
-
-    // Edit tugas dengan AJAX
-    $('#editTaskForm').on('submit', function (e) {
-        e.preventDefault();
-        let taskId = $(this).data("id");  // Ambil ID tugas yang akan diedit
-
-        let taskData = {
-            title: $('#editTitle').val(),
-            category: $('#editCategory').val(),
-            deadline: $('#editDeadline').val(),
-            status: $('#editStatus').val()
-        };
+    $("#confirmDeleteTask").click(function () {
+        let taskId = $("#deleteTaskId").val();
 
         $.ajax({
-            url: "/tasks/" + taskId,
-            type: "PUT",
-            contentType: "application/json",
-            data: JSON.stringify(taskData),
+            url: `/tasks/hapus/${taskId}`,
+            type: "DELETE",
             success: function (response) {
-                alert("Tugas berhasil diperbarui!");
-                window.location.href = "/";
+                if (response.success) {
+                    $(`#task-${taskId}`).remove();
+                    $("#deleteTaskModal").modal("hide");
+                }
             },
-            error: function (xhr) {
-                alert("Gagal memperbarui tugas: " + xhr.responseText);
+            error: function () {
+                alert("Error deleting task");
             }
         });
     });
