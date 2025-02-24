@@ -13,7 +13,7 @@
 3. Pastikan Anda berada di direktori proyek yang benar.
 4. Untuk menjalankan server, gunakan perintah berikut:
    ```sh
-   npm run dev atau nodemon app.js
+   npm run dev 
    ```
 
 ## Fitur yang Telah Diimplementasikan
