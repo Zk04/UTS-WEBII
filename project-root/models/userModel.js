@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");// Import mongoose untuk mengelola database MongoDB
- const bcrypt = require("bcrypt");
+ const bcrypt = require("bcryptjs");
 // Definisi skema (Schema) untuk koleksi "users" di MongoDB
 const UserSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true },

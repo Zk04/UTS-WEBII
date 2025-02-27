@@ -1,4 +1,4 @@
-const bcrypt = require("bcrypt"); // Library untuk hashing password
+const bcrypt = require("bcryptjs"); // Library untuk hashing password
 const User = require("../models/userModel"); // Model pengguna dari database
 const { generateToken } = require("../config/auth"); // Fungsi untuk membuat token JWT
 
@@ -11,11 +11,11 @@ exports.register = async (req, res) => {
     if (existingUser)
       return res.render("auth/register", { error: "Username already taken" });
 
-    // Hash the password
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    // // Hash the password
+    // const saltRounds = 10;
+    // const hashedPassword = await bcrypt.hash(password, saltRounds);
     // Create and save new user
-    const user = new User({ username, password: hashedPassword });
+    const user = new User({ username, password});
     await user.save();
 
     res.redirect("/auth/login");
