@@ -13,7 +13,7 @@
    ```sh
    npm install express mongoose bcryptjs jsonwebtoken cookie-parser dotenv ejs socket.io body-parser nodemon
    ```
-4. Pastikan Anda berada di direktori proyek yang benar. kemudian pada bagian package.json masukkan ``` sh "start": "node app.js",
+4. Pastikan Anda berada di direktori proyek yang benar. kemudian pada bagian package.json masukkan pada bagian scripts``` "node app.js",
     "dev": "nodemon app.js ```
 5. Untuk menjalankan server, gunakan perintah berikut:
    ```sh
