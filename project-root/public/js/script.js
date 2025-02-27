@@ -1,147 +1,69 @@
-document.addEventListener("DOMContentLoaded", () => {
+// script.js
 
-  //Event listener untuk menghapus tugas
-  document.addEventListener("click", async (event) => {
-    if (event.target.classList.contains("delete-task")) {
-      const taskId = event.target.getAttribute("data-id");
-      if (confirm("Apakah Anda yakin ingin menghapus tugas ini?")) {
-        const response = await fetch(`/tasks/hapus/${taskId}`, {
-          method: "DELETE",
-        });
-        if (response.ok) {
-          const result = await response.json();
-          alert(result.message);
-          event.target.closest("tr").remove();
+$(document).ready(function () {
+  // -------------------------------
+  // 1. Filter Category
+  // -------------------------------
+  // When the filter dropdown changes, show only the tasks that match the selected category.
+  $("#filterCategory").on("change", function () {
+    var selectedCategory = $(this).val();
+
+    if (selectedCategory === "Semua") {
+      // Show all tasks if "Semua" (All) is selected.
+      $("#taskTableBody tr").show();
+    } else {
+      // Loop through each task row and show/hide based on its data-category attribute.
+      $("#taskTableBody tr").each(function () {
+        var taskCategory = $(this).data("category");
+        if (taskCategory === selectedCategory) {
+          $(this).show();
         } else {
-          const error = await response.text();
-          alert("Gagal menghapus tugas: " + error);
+          $(this).hide();
         }
-      }
+      });
     }
   });
 
-  const socket = io();
-  socket.on("newTask", (task) => {
-    alert(`Tugas baru ditambahkan: ${task.title}`);
-  });
-
-  socket.on("taskAdded", (task) => {
-    alert(`Tugas baru ditambahkan: ${task.title}`);
-  });
-
-  socket.on("taskUpdated", (task) => {
-    alert(`Tugas diperbarui: ${task.title}`);
-  });
-
-  socket.on("taskDeleted", (task) => {
-    alert(`Tugas dihapus: ${task.title}`);
-  });
-});
-// AJAX digunakan untuk manipulasi data tanpa reload halaman
-$(document).ready(function () {
-    // Tambah tugas dengan AJAX
-    $('#taskForm').on('submit', function (e) {
-        e.preventDefault(); // Mencegah reload halaman
-        let taskData = {
-            title: $('#title').val(),
-            category: $('#category').val(),
-            deadline: $('#deadline').val(),
-            status: $('#status').val()
-        };
-
-        $.ajax({
-            url: "/tasks",
-            type: "POST",
-            contentType: "application/json",
-            data: JSON.stringify(taskData),
-            success: function (response) {
-                alert("Tugas berhasil ditambahkan!");
-                window.location.href = "/tasks"; // Refresh halaman utama
-            },
-            error: function (xhr) {
-                alert("Gagal menambahkan tugas: " + xhr.responseText);
-            }
-        });
-    });
-
-    // Edit tugas dengan AJAX
-    $('#editTaskForm').on('submit', function (e) {
-      e.preventDefault();
-      let taskId = $(this).data("id");  // Ambil ID tugas yang akan diedit
-
-      let taskData = {
-          title: $('#editTitle').val(),
-          category: $('#editCategory').val(),
-          deadline: $('#editDeadline').val(),
-          status: $('#editStatus').val()
-      };
-
-      $.ajax({
-          url: "/tasks/" + taskId,
-          type: "PUT",
-          contentType: "application/json",
-          data: JSON.stringify(taskData),
-          success: function (response) {
-              alert("Tugas berhasil diperbarui!");
-              window.location.href = "/";
-          },
-          error: function (xhr) {
-              alert("Gagal memperbarui tugas: " + xhr.responseText);
-          }
-      });
-    });
-
-    //Event listener untuk perubahan pada dropdown kategori
-    $('#filterCategory').on('change', function () {
-      let selectedCategory = $(this).val(); // Ambil nilai kategori yang dipilih
+  // -------------------------------
+  // 2. Delete Task
+  // -------------------------------
+  // When a delete button is clicked, send an AJAX request to delete the task from the server.
+  // On success, remove the task row from the table.
+  $(document).on("click", ".delete-task", function () {
+    // Use $(this) to reliably get the data-id from the clicked element
+    const taskId = $(this).data("id");
+    console.log("Task ID to delete:", taskId);
+    
+    if (!taskId) {
+      console.error("Task ID not found on this element.");
+      return;
+    }
+  
+    if (confirm("Apakah Anda yakin ingin menghapus tugas ini?")) {
+      // Build the URL based on your route
+      const url = `/tasks/hapus/${taskId}`;
+      console.log("Sending DELETE request to:", url);
       
       $.ajax({
-          url: `/tasks/filter?category=${selectedCategory}`, // Kirim permintaan ke server
-          type: "GET",
-          success: function (tasks) {
-              let taskTableBody = $('#taskTableBody');
-              taskTableBody.empty(); // Kosongkan tabel sebelum menampilkan data baru
-              
-              if (tasks.length === 0) {
-                  taskTableBody.append('<tr><td colspan="5">Tidak ada tugas dalam kategori ini.</td></tr>');
-              } else {
-                  tasks.forEach(task => {
-                      let row = `<tr>
-                          <td>${task.title}</td>
-                          <td>${task.description}</td>
-                          <td>${task.category}</td>
-                          <td>${new Date(task.deadline).toISOString().split('T')[0]}</td>
-                          <td>${task.status}</td>
-                              <td>
-                                <a href="/tasks/edit/${task._id}" class="btn btn-warning btn-sm">Edit</a>
-                                <button class="btn btn-danger btn-sm delete-task" data-id="${task._id}">Hapus</button>
-                              </td>
-                          </tr>`;
-                      taskTableBody.append(row);
-                  });
-              }
-          },
-          error: function (xhr) {
-              alert("Gagal mengambil data tugas: " + xhr.responseText);
+        url: url,
+        type: "DELETE",
+        dataType: "json", // Expecting JSON response
+        success: function (response) {
+          if (response.success) {
+            // Remove the corresponding table row (assuming each row has data-id)
+            $(`tr[data-id="${taskId}"]`).remove();
+            console.log("Task deleted and removed from DOM.");
+          } else {
+            alert("Gagal menghapus tugas.");
           }
+        },
+        error: function (xhr, status, error) {
+          console.error("Delete task error:", error);
+          console.log("Response details:", xhr.responseText);
+          alert("Terjadi kesalahan saat menghapus tugas.");
+        },
       });
+    }
   });
 
-    // $("#confirmDeleteTask").click(function () {
-    //     let taskId = $("#deleteTaskId").val();
-
-    //     $.ajax({
-    //         url: `/tasks/hapus/${taskId}`,
-    //         type: "DELETE",
-    //         success: function (response) {
-    //             if (response.success) {
-    //                 $(`#task-${taskId}`).remove();
-    //                 $("#deleteTaskModal").modal("hide");
-    //             }
-    //         },
-    //         error: function () {
-    //             alert("Error deleting task");
-    //         }
-    //     });
-    // });
 });

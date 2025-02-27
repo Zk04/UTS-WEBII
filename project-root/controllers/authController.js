@@ -1,43 +1,53 @@
-const bcrypt = require("bcrypt");// Library untuk hashing password
-const User = require("../models/userModel");// Model pengguna dari database
+const bcrypt = require("bcrypt"); // Library untuk hashing password
+const User = require("../models/userModel"); // Model pengguna dari database
 const { generateToken } = require("../config/auth"); // Fungsi untuk membuat token JWT
 
-const authController = {
-   // Fungsi registrasi pengguna baru
-  register: async (req, res) => {
+exports.register = async (req, res) => {
+  try {
     const { username, password } = req.body;
-    try {
-      const hashedPassword = await bcrypt.hash(password, 10); // Hash password sebelum disimpan
-      const newUser = new User({ username, password: hashedPassword });// Buat user baru
-      await newUser.save();// Simpan user ke database
-      
-      res.redirect("/login"); // Setelah registrasi sukses, arahkan ke halaman login
-    } catch (err) {
-      res.render("auth/register", { message: "Registration failed: " + err.message, token: null });
-    }
-  },
 
-  // Fungsi login pengguna
-  login: async (req, res) => {
-    const { username, password } = req.body;
-    try {
-      const user = await User.findOne({ username });// Cari user berdasarkan username
-      if (!user || !(await bcrypt.compare(password, user.password))) {
-        return res.render("auth/login", { message: "Invalid username or password", token: null });// Jika user tidak ditemukan atau password salah, kirim pesan error
-      }
-      const token = generateToken(user._id);// Buat token JWT untuk sesi pengguna
-      console.log("Generated Token:", token);
-      res.cookie("token", token, { httpOnly: true }); // Simpan token di cookie agar aman
-      res.redirect("/tasks"); // Arahkan ke halaman tugas setelah login sukses
-    } catch (err) {
-      res.render("auth/login", { message: "Login failed: " + err.message, token: null });
-    }
-  },
-  // Fungsi logout pengguna
-  logout: (req, res) => {
-    res.clearCookie("token");
-    res.redirect("/login");
-  },
+    // Check if username already exists
+    const existingUser = await User.findOne({ username });
+    if (existingUser)
+      return res.render("auth/register", { error: "Username already taken" });
+
+    // Hash the password
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    // Create and save new user
+    const user = new User({ username, password: hashedPassword });
+    await user.save();
+
+    res.redirect("/auth/login");
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
 };
 
-module.exports = authController;// Ekspor controller untuk digunakan di file lain
+// Handle user login
+exports.login = async (req, res) => {
+  try {
+    const { username, password } = req.body;
+
+    const user = await User.findOne({ username });
+    if (!user) return res.render("login", { error: "User not found" });
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) return res.render("login", { error: "Invalid " });
+
+    // Generate JWT token & store in cookie
+    const token = generateToken(user);
+    res.cookie("token", token, { httpOnly: true });
+    // res.status(201).json({ token }); //For Postman token
+
+    res.redirect("/tasks");
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+};
+
+// Handle user logout
+exports.logout = (req, res) => {
+  res.clearCookie("token");
+  res.redirect("/auth/login");
+};

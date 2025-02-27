@@ -79,3 +79,17 @@ body {
     background-color: #dc3545;
     border: none;
 }
+
+.card {
+    background: #e0d9d9;
+    border-radius: 12px;
+    border-width: 0;
+}
+.btn-custom {
+    background-color: #0d6efd;
+    color: white;
+    transition: 0.3s;
+}
+.btn-custom:hover {
+    background-color: #0b5ed7;
+}

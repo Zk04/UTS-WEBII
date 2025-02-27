@@ -4,7 +4,6 @@ const mongoose = require("mongoose"); // Import mongoose untuk mengelola databas
 const TaskSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }, // Tipe data ObjectId yang merujuk ke user
   title: { type: String, required: true },
-  description: { type: String, required: true },
   category: { type: String, required: true },
   deadline: { type: Date, required: true },
   status: { type: String, required: true },

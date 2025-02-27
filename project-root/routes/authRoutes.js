@@ -7,13 +7,13 @@ router.post("/login", authController.login); // Route untuk login pengguna (POST
 router.get("/logout", authController.logout); // Route untuk logout pengguna (GET)
 
 router.get("/register", (req, res) => {
-  res.render("auth/register", { message: null, token: null });
+  res.render("auth/register");
 });
 // Ketika pengguna mengunjungi /register, halaman registrasi akan ditampilkan
 // `res.render("auth/register")` merender tampilan `views/auth/register.ejs` // `message: null` dan `token: null` digunakan untuk menangani pesan atau token di tampilan
 
 router.get("/login", (req, res) => {
-  res.render("auth/login", { message: null, token: null });
+  res.render("auth/login");
 });
 // Ketika pengguna mengunjungi /login, halaman login akan ditampilkan // Sama seperti register, `message` dan `token` digunakan di tampilan untuk notifikasi
 
