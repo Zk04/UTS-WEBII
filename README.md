@@ -11,9 +11,10 @@
    ```
 3. Jalankan juga perintah berikut untuk menginstal modul yang diperlukan:
    ```sh
-   npm install express mongoose bcryptjs jsonwebtoken cookie-parser dotenv ejs socket.io method-override 
+   npm install express mongoose bcryptjs jsonwebtoken cookie-parser dotenv ejs socket.io body-parser nodemon
    ```
-4. Pastikan Anda berada di direktori proyek yang benar.
+4. Pastikan Anda berada di direktori proyek yang benar. kemudian pada bagian package.json masukkan ``` sh "start": "node app.js",
+    "dev": "nodemon app.js ```
 5. Untuk menjalankan server, gunakan perintah berikut:
    ```sh
    npm run dev 
