@@ -1,38 +1,39 @@
-const Task = require("../models/taskModel"); // Mengimpor model Task dari database
-const { io } = require("../server"); // Mengimpor WebSocket (Socket.IO) untuk komunikasi real-tim
+const Task = require("../models/taskModel"); // Mengimpor model Task untuk berinteraksi dengan database
+const { io } = require("../server"); // Mengimpor WebSocket (Socket.IO) untuk komunikasi secara real-time
 
 // Menampilkan semua tugas pengguna yang sedang login
 exports.index = async (req, res) => {
   try {
-    const userId = req.user ? req.user.id : null; // Pastikan req.user tersedia
-    const userName = req.user ? req.user.username : "Guest";
-    const tasks = await Task.find({ userId }); // Ambil semua tugas milik user tersebut
+    const userId = req.user ? req.user.id : null; // Mengecek apakah user sudah login
+    const userName = req.user ? req.user.username : "Guest"; // Mengambil nama pengguna
+    const tasks = await Task.find({ userId }); // Mengambil semua tugas berdasarkan userId
     res.render("tasks/index", {
-      tasks,
-      user: req.user || { username: "Guest" },
-      message: null,
-      token: req.query.token,
+      tasks, // Mengirim data tugas ke view
+      user: req.user || { username: "Guest" }, // Mengirim data user ke view
+      message: null, // Pesan notifikasi (jika ada)
+      token: req.query.token, // Token autentikasi yang dikirim melalui query parameter
     });
   } catch (error) {
-    res.status(500).send(error.message);
+    res.status(500).send(error.message); // Menampilkan error jika terjadi kesalahan
   }
 };
 
 // Menampilkan form tambah tugas
 exports.tambah = (req, res) => {
   res.render("tasks/tambah", {
-    user: req.user,
-    message: null,
-    token: req.query.token,
+    user: req.user, // Mengirim data user ke view
+    message: null, // Pesan notifikasi (jika ada)
+    token: req.query.token, // Token autentikasi
   });
 };
 
 // Menyimpan tugas baru ke database
 exports.simpan = async (req, res) => {
   try {
-    const { title, category, deadline, status } = req.body;
-    const userId = req.user ? req.user.id : null; // Pastikan req.user ada
+    const { title, category, deadline, status } = req.body; // Mengambil data dari form
+    const userId = req.user ? req.user.id : null; // Mengecek apakah user sudah login
 
+    // Membuat tugas baru berdasarkan input user
     const newTask = new Task({
       userId,
       title,
@@ -40,18 +41,19 @@ exports.simpan = async (req, res) => {
       deadline,
       status,
     });
-    await newTask.save(); // Simpan tugas ke database
-    // Kirim event WebSocket ke semua client
+    await newTask.save(); // Menyimpan tugas ke database
+
+    // Mengirim event ke semua client menggunakan WebSocket (Socket.IO)
     io.emit("taskAdded", {
       message: `Tugas baru: ${title} ditambahkan!`,
       task: newTask,
     });
 
-    res.redirect("/tasks"); // Redirect setelah sukses menambahkan tugas
+    res.redirect("/tasks"); // Redirect ke halaman daftar tugas setelah berhasil
   } catch (error) {
     res.render("tasks/tambah", {
       user: req.user,
-      message: "Gagal menambahkan tugas!",
+      message: "Gagal menambahkan tugas!", // Pesan error jika terjadi kegagalan
       token: req.query.token,
     });
   }
@@ -60,12 +62,12 @@ exports.simpan = async (req, res) => {
 // Menampilkan form edit tugas berdasarkan ID
 exports.edit = async (req, res) => {
   try {
-    const task = await Task.findById(req.params.id); // Cari tugas berdasarkan ID
+    const task = await Task.findById(req.params.id); // Mencari tugas berdasarkan ID
     if (!task) {
-      return res.status(404).send("Tugas tidak ditemukan.");
+      return res.status(404).send("Tugas tidak ditemukan."); // Jika tugas tidak ditemukan
     }
     res.render("tasks/edit", {
-      task,
+      task, // Mengirim data tugas ke view
       user: req.user,
       message: null,
       token: req.query.token,
@@ -78,7 +80,7 @@ exports.edit = async (req, res) => {
 // Memperbarui tugas berdasarkan ID
 exports.update = async (req, res) => {
   try {
-    const { title, description, category, deadline, status } = req.body;
+    const { title, description, category, deadline, status } = req.body; // Mengambil data dari form
     const updatedTask = await Task.findByIdAndUpdate(
       req.params.id,
       {
@@ -87,16 +89,16 @@ exports.update = async (req, res) => {
         deadline,
         status,
       },
-      { new: true }
-    ); // `new: true` agar mendapatkan data terbaru setelah update
+      { new: true } // Opsi ini untuk memastikan mendapatkan data terbaru setelah di-update
+    );
 
-    // Kirim event WebSocket ke semua client
+    // Mengirim event ke semua client jika tugas berhasil diupdate
     io.emit("taskUpdated", {
       message: `Tugas: ${title} diperbarui!`,
       task: updatedTask,
     });
 
-    res.redirect("/tasks"); // Redirect setelah sukses update tugas
+    res.redirect("/tasks"); // Redirect ke halaman daftar tugas
   } catch (error) {
     res.status(500).send(error.message);
   }
@@ -105,10 +107,11 @@ exports.update = async (req, res) => {
 // Menghapus tugas berdasarkan ID
 exports.hapus = async (req, res) => {
   try {
-    await Task.findOneAndDelete({ _id: req.params.id });
-    io.emit("taskDeleted", { message: "task dihapus" });
-    res.json({ success: true, id: req.params.id });
-    // res.redirect("/tasks"); // Redirect instead of sending JSON
+    await Task.findOneAndDelete({ _id: req.params.id }); // Menghapus tugas dari database
+    io.emit("taskDeleted", { message: "Tugas dihapus" }); // Mengirim event ke semua client
+
+    res.json({ success: true, id: req.params.id }); // Mengirim respons JSON ke client
+    // res.redirect("/tasks"); // Jika ingin redirect ke halaman daftar tugas
   } catch (error) {
     res.status(500).send(error.message);
   }

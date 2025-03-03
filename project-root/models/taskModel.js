@@ -7,7 +7,7 @@ const TaskSchema = new mongoose.Schema({
   category: { type: String, required: true },
   deadline: { type: Date, required: true },
   status: { type: String, required: true },
-}, { versionKey: false });
+}, { versionKey: false }) // Menghilangkan field "__v" yang biasanya digunakan untuk versi dokumen;
 
 const Task = mongoose.model("Task", TaskSchema); // Membuat model "Task" berdasarkan skema yang telah didefinisikan
 

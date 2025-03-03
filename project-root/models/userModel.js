@@ -6,10 +6,10 @@ const UserSchema = new mongoose.Schema({
   password: { type: String, required: true },
 }, { versionKey: false }); // Menonaktifkan field "__v" yang biasanya ditambahkan oleh MongoDB
 
-
+// Middleware sebelum menyimpan data user (pre-save hook)
 UserSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
-  this.password = await bcrypt.hash(this.password, 10);
+  if (!this.isModified("password")) return next(); // Jika password tidak berubah, langsung lanjut
+  this.password = await bcrypt.hash(this.password, 10); // Hash password sebelum disimpan
   next();
 });
 

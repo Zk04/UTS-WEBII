@@ -2,68 +2,63 @@
 
 $(document).ready(function () {
   // -------------------------------
-  // 1. Filter Category
+  // 1. Filter Category (Filter berdasarkan kategori tugas)
   // -------------------------------
-  // When the filter dropdown changes, show only the tasks that match the selected category.
   $("#filterCategory").on("change", function () {
-    var selectedCategory = $(this).val();
+    var selectedCategory = $(this).val(); // Ambil kategori yang dipilih oleh pengguna
 
     if (selectedCategory === "Semua") {
-      // Show all tasks if "Semua" (All) is selected.
+      // Jika pengguna memilih "Semua", tampilkan semua tugas
       $("#taskTableBody tr").show();
     } else {
-      // Loop through each task row and show/hide based on its data-category attribute.
+      // Loop melalui setiap baris tugas dan tampilkan/sembunyikan sesuai kategori
       $("#taskTableBody tr").each(function () {
-        var taskCategory = $(this).data("category");
+        var taskCategory = $(this).data("category"); // Ambil kategori tugas dari atribut data-category
         if (taskCategory === selectedCategory) {
-          $(this).show();
+          $(this).show(); // Tampilkan jika kategori cocok
         } else {
-          $(this).hide();
+          $(this).hide(); // Sembunyikan jika tidak cocok
         }
       });
     }
   });
 
   // -------------------------------
-  // 2. Delete Task
+  // 2. Delete Task (Menghapus tugas)
   // -------------------------------
-  // When a delete button is clicked, send an AJAX request to delete the task from the server.
-  // On success, remove the task row from the table.
+  // Saat tombol hapus ditekan, kirim permintaan AJAX untuk menghapus tugas dari server
   $(document).on("click", ".delete-task", function () {
-    // Use $(this) to reliably get the data-id from the clicked element
-    const taskId = $(this).data("id");
+    const taskId = $(this).data("id"); // Ambil ID tugas dari tombol yang diklik
     console.log("Task ID to delete:", taskId);
-    
+
     if (!taskId) {
-      console.error("Task ID not found on this element.");
+      console.error("Task ID tidak ditemukan pada elemen ini.");
       return;
     }
-  
+
     if (confirm("Apakah Anda yakin ingin menghapus tugas ini?")) {
-      // Build the URL based on your route
-      const url = `/tasks/hapus/${taskId}`;
-      console.log("Sending DELETE request to:", url);
-      
+      const url = `/tasks/hapus/${taskId}`; // URL endpoint untuk menghapus tugas
+      console.log("Mengirim permintaan DELETE ke:", url);
+
       $.ajax({
         url: url,
         type: "DELETE",
-        dataType: "json", // Expecting JSON response
+        dataType: "json", // Mengharapkan respons dalam format JSON
         success: function (response) {
           if (response.success) {
-            // Remove the corresponding table row (assuming each row has data-id)
+            // Jika penghapusan berhasil, hapus baris tugas dari tabel
             $(`tr[data-id="${taskId}"]`).remove();
-            console.log("Task deleted and removed from DOM.");
+            console.log("Tugas berhasil dihapus dan dihapus dari DOM.");
           } else {
             alert("Gagal menghapus tugas.");
           }
         },
         error: function (xhr, status, error) {
-          console.error("Delete task error:", error);
-          console.log("Response details:", xhr.responseText);
+          console.error("Kesalahan saat menghapus tugas:", error);
+          console.log("Detail respons:", xhr.responseText);
           alert("Terjadi kesalahan saat menghapus tugas.");
         },
       });
     }
   });
-
 });
